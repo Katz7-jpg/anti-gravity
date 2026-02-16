@@ -1,0 +1,15 @@
+﻿{
+  "model": "zai/glm-5",
+  "small_model": "zai/glm-5",
+  "provider": {
+    "openai": {
+      "apiKey": "modalresearch_omx2pL-akvkXlBYAOAxiYwg--GbElAN84xMJhevcOrM",
+      "baseUrl": "https://api.us-west-2.modal.direct/v1",
+      "options": {
+        "enable_thinking": true,
+        "temperature": 0.1
+      }
+    }
+  },
+  "permission": "allow"
+}
