@@ -1,0 +1,43 @@
+name: Deploy Telegram Scout to E2B Cloud
+
+on:
+  push:
+    branches: [master, main]
+  workflow_dispatch:  # Manual trigger
+  schedule:
+    - cron: '0 */6 * * *'  # Every 6 hours for always-on
+  repository_dispatch:  # Webhook trigger
+    types: [deploy_scout]
+
+jobs:
+  deploy-scout:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+      
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      
+      - name: Install Dependencies
+        run: |
+          pip install e2b>=0.17.0 python-telegram-bot supabase python-dotenv
+      
+      - name: Deploy to E2B Sandbox
+        env:
+          E2B_API_KEY: ${{ secrets.E2B_API_KEY }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+        run: |
+          python TELEGRAM_BOT/deploy_to_e2b.py
+      
+      - name: Health Check
+        run: |
+          echo "✅ Scout deployed successfully"
+          echo "📱 Check Telegram for /start response"
+          echo "🔄 Next scheduled run: in 6 hours"
+          echo "🌐 Webhook trigger available via repository_dispatch"
