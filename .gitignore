@@ -21,3 +21,8 @@ npm-debug.log*
 # Build
 dist/
 build/
+
+# Embedded git repos (not part of this project)
+SYSTEM_CORE/Antigravity_Roaming/
+SYSTEM_CORE/.gemini/
+__pycache__/

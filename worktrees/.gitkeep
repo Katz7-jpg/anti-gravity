@@ -1,0 +1,5 @@
+# Worktrees Directory
+
+This directory contains Git worktrees for parallel agent tasks in Kilo Code Agent Manager.
+
+Each worktree represents an isolated working directory for a specific agent or task, allowing multiple agents to work in parallel without interfering with each other.
