@@ -1,0 +1,76 @@
+name: Saudi Intelligence Engine - 3-Day Cycle
+
+on:
+  schedule:
+    # Run every 3 days at 6:00 AM UTC
+    - cron: '0 6 */3 * *'
+  workflow_dispatch:
+    # Allow manual trigger
+    inputs:
+      test_mode:
+        description: 'Run in test mode with sample data'
+        required: false
+        default: 'false'
+
+env:
+  TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+  TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+  EXA_API_KEY: ${{ secrets.EXA_API_KEY }}
+
+jobs:
+  intelligence-cycle:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+        
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install requests aiohttp
+        
+    - name: Run Intelligence Cycle
+      run: |
+        cd Operation-Peanut/skills/saudi-intelligence-engine
+        if [ "${{ github.event.inputs.test_mode }}" = "true" ]; then
+          echo "Running in TEST mode..."
+          python run_cycle.py
+        else
+          echo "Running PRODUCTION cycle..."
+          python extraction_engine.py
+        fi
+        
+    - name: Upload cycle results
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: intelligence-cycle-${{ github.run_number }}
+        path: |
+          Operation-Peanut/skills/saudi-intelligence-engine/*.json
+          Operation-Peanut/skills/saudi-intelligence-engine/logs/
+        retention-days: 30
+
+  # Optional: Send failure notification
+  notify-failure:
+    needs: intelligence-cycle
+    if: failure()
+    runs-on: ubuntu-latest
+    steps:
+    - name: Notify on failure
+      uses: appleboy/telegram-action@master
+      with:
+        to: ${{ secrets.TELEGRAM_CHAT_ID }}
+        token: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+        message: |
+          ⚠️ Saudi Intelligence Engine - Cycle Failed
+          
+          Run #${{ github.run_number }}
+          Time: ${{ github.event.head_commit.timestamp }}
+          
+          Check: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
